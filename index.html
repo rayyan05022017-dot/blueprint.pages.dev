@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Blueprint — Couture Digital Estates · From £28</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Cormorant:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Tenor+Sans&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --noir:#04030c;
+  --obsidian:#08071a;
+  --chamber:#0e0c24;
+  --vault:#15122e;
+  --gold:#C9A96E;
+  --gold-bright:#E4C882;
+  --gold-dim:#8B7340;
+  --gold-veil:rgba(201,169,110,0.12);
+  --gold-line:rgba(201,169,110,0.3);
+  --gold-glow:rgba(201,169,110,0.18);
+  --ivory:#F6F3EC;
+  --cream:#E2DDD1;
+  --parchment:#A09880;
+  --shadow:#020109;
+  --ease-royal:cubic-bezier(0.16,1,0.3,1);
+  --ease-silk:cubic-bezier(0.4,0,0.2,1);
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--noir);
+  color:var(--ivory);
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-weight:400;
+  font-size:1.05rem;
+  line-height:1.7;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  cursor:none;
+}
+
+/* ── GRAIN ─────────────────────────────── */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.03;
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* ── CANVAS ─────────────────────────────── */
+#c{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+
+/* ── CURSOR ─────────────────────────────── */
+#cur{
+  position:fixed;width:1px;height:1px;z-index:99999;pointer-events:none;
+}
+#cur::before{
+  content:'';position:absolute;
+  width:32px;height:32px;
+  border:1px solid rgba(201,169,110,0.7);
+  border-radius:50%;
+  top:-16px;left:-16px;
+  transition:width .35s var(--ease-royal),height .35s var(--ease-royal),border-color .3s;
+}
+#cur::after{
+  content:'';position:absolute;
+  width:4px;height:4px;
+  background:var(--gold);
+  border-radius:50%;
+  top:-2px;left:-2px;
+  transition:transform .2s;
+}
+body.hov #cur::before{width:56px;height:56px;top:-28px;left:-28px;border-color:var(--gold)}
+
+/* ── LOADING SCREEN ─────────────────────── */
+#loader{
+  position:fixed;inset:0;z-index:99998;
+  background:var(--noir);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;
+  transition:opacity 1s var(--ease-royal);
+}
+.loader-mark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;
+  font-weight:300;
+  letter-spacing:0.6em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:0;
+  animation:fadeUp 1s 0.3s forwards;
+}
+.loader-line{
+  width:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  animation:lineGrow 1.2s 0.6s forwards;
+}
+.loader-sub{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;
+  letter-spacing:0.4em;
+  text-transform:uppercase;
+  color:var(--parchment);
+  opacity:0;
+  animation:fadeUp 1s 1s forwards;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lineGrow{from{width:0}to{width:200px}}
+
+/* ── WRAP ───────────────────────────────── */
+.w{max-width:1480px;margin:0 auto;padding:0 72px;position:relative;z-index:10}
+@media(max-width:900px){.w{padding:0 32px}}
+
+/* ── NAV ────────────────────────────────── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:5000;
+  height:80px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 72px;
+  transition:background .8s,border-color .8s;
+}
+#nav.s{
+  background:rgba(4,3,12,0.92);
+  backdrop-filter:blur(40px) saturate(1.4);
+  border-bottom:1px solid rgba(201,169,110,0.15);
+}
+.nav-wordmark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.15rem;
+  font-weight:500;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:var(--ivory);
+  text-decoration:none;
+  display:flex;align-items:center;gap:16px;
+}
+.nav-wordmark span{
+  display:inline-block;width:24px;height:24px;
+  border:1px solid var(--gold);
+  transform:rotate(45deg);
+  font-size:0;
+}
+.nav-links{display:flex;gap:44px;list-style:none}
+.nav-links a{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  color:var(--parchment);
+  text-decoration:none;
+  transition:color .3s;
+}
+.nav-links a:hover{color:var(--gold)}
+.nav-btn{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.58rem;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  color:var(--noir);
+  background:var(--gold);
+  border:none;
+  padding:11px 28px;
+  cursor:pointer;
+  transition:background .3s,transform .3s;
+}
+.nav-btn:hover{background:var(--gold-bright);transform:translateY(-1px)}
+
+/* ── HERO ───────────────────────────────── */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding-top:80px;position:relative;overflow:hidden;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1fr 420px;
+  gap:80px;
+  align-items:center;
+  width:100%;
+}
+.hero-left{position:relative}
+.hero-rule{
+  width:1px;height:80px;
+  background:linear-gradient(180deg,transparent,var(--gold),transparent);
+  margin-bottom:48px;
+}
+.hero-eyebrow{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.58rem;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:32px;
+  display:flex;align-items:center;gap:20px;
+}
+.hero-eyebrow::before{content:'';width:32px;height:1px;background:var(--gold)}
+.hero-h1{
+  font-size:clamp(4.2rem,8.5vw,9rem);
+  font-weight:300;
+  line-height:0.9;
+  letter-spacing:-0.02em;
+  margin-bottom:48px;
+}
+.hero-h1 em{
+  font-style:italic;
+  font-weight:400;
+  background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold) 50%,var(--gold-dim) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.82rem;
+  letter-spacing:0.06em;
+  color:var(--parchment);
+  max-width:500px;
+  line-height:1.8;
+  margin-bottom:56px;
+}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.btn-gold{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--noir);
+  background:var(--gold);
+  border:none;
+  padding:18px 44px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform .4s var(--ease-royal),box-shadow .4s;
+}
+.btn-gold::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity .3s}
+.btn-gold:hover{transform:translateY(-3px);box-shadow:0 20px 50px -10px rgba(201,169,110,0.5)}
+.btn-gold:hover::after{opacity:1}
+.btn-outline{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--gold);
+  background:transparent;
+  border:1px solid rgba(201,169,110,0.45);
+  padding:17px 40px;
+  cursor:pointer;
+  transition:background .3s,border-color .3s,color .3s,transform .3s;
+}
+.btn-outline:hover{background:var(--gold-veil);border-color:var(--gold);color:var(--ivory);transform:translateY(-2px)}
+
+/* ── HERO RIGHT CARD ─────────────────────── */
+.hero-card{
+  background:rgba(14,12,36,0.7);
+  border:1px solid rgba(201,169,110,0.2);
+  backdrop-filter:blur(24px);
+  padding:52px 44px;
+  position:relative;
+}
+.hero-card::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.hc-label{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.55rem;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:28px;
+  display:flex;align-items:center;gap:12px;
+}
+.hc-label::before{content:'';width:20px;height:1px;background:var(--gold)}
+.hc-price{
+  font-size:5.5rem;
+  font-weight:300;
+  line-height:1;
+  letter-spacing:-0.04em;
+  color:var(--ivory);
+  margin-bottom:8px;
+}
+.hc-price sup{font-size:2rem;vertical-align:super;font-weight:300;color:var(--gold)}
+.hc-desc{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:0.06em;
+  color:var(--parchment);
+  line-height:1.8;
+  margin-bottom:36px;
+  padding-bottom:36px;
+  border-bottom:1px solid rgba(201,169,110,0.12);
+}
+.hc-features{list-style:none;margin-bottom:40px}
+.hc-features li{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.68rem;
+  letter-spacing:0.08em;
+  color:var(--cream);
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;gap:14px;
+}
+.hc-features li::before{
+  content:'◆';
+  font-size:0.35rem;
+  color:var(--gold);
+  flex-shrink:0;
+}
+/* ── VERTICAL TEXT ──────────────────────── */
+.vert-text{
+  position:absolute;
+  right:-20px;top:50%;
+  transform:rotate(90deg) translateX(-50%);
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.52rem;
+  letter-spacing:0.4em;
+  text-transform:uppercase;
+  color:rgba(201,169,110,0.3);
+  white-space:nowrap;
+  transform-origin:right center;
+}
+
+/* ── MARQUEE ────────────────────────────── */
+.marquee{
+  border-top:1px solid rgba(201,169,110,0.1);
+  border-bottom:1px solid rgba(201,169,110,0.1);
+  background:rgba(8,7,26,0.6);
+  overflow:hidden;
+  padding:16px 0;
+}
+.mq-inner{display:flex;animation:mq 35s linear infinite;white-space:nowrap}
+.mq-item{
+  padding:0 56px;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--parchment);
+  flex-shrink:0;
+  display:flex;align-items:center;gap:20px;
+}
+.mq-item::after{content:'◆';font-size:0.3rem;color:var(--gold-dim)}
+@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── SECTION BASE ───────────────────────── */
+section{padding:160px 0;position:relative}
+.section-header{margin-bottom:80px}
+.eyebrow{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.58rem;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:var(--gold);
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:28px;
+}
+.eyebrow::before{content:'';width:32px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+.section-h2{
+  font-size:clamp(2.8rem,5.5vw,5.5rem);
+  font-weight:300;
+  line-height:0.95;
+  letter-spacing:-0.02em;
+  margin-bottom:24px;
+}
+.section-h2 em{
+  font-style:italic;
+  background:linear-gradient(135deg,var(--gold-bright),var(--gold) 60%,var(--gold-dim));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.section-lead{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.82rem;
+  letter-spacing:0.04em;
+  color:var(--parchment);
+  max-width:520px;
+  line-height:1.85;
+}
+
+/* ── DIVIDER ────────────────────────────── */
+.hr{height:1px;background:linear-gradient(90deg,transparent,rgba(201,169,110,0.15),transparent)}
+
+/* ── PRICING ────────────────────────────── */
+.pricing-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid rgba(201,169,110,0.12)}
+.p-card{
+  padding:60px 48px 56px;
+  border-right:1px solid rgba(201,169,110,0.1);
+  background:var(--obsidian);
+  position:relative;
+  transition:background .5s;
+}
+.p-card:last-child{border-right:none}
+.p-card:hover{background:var(--chamber)}
+.p-card.star{
+  background:linear-gradient(170deg,rgba(201,169,110,0.09) 0%,var(--obsidian) 55%);
+}
+.p-card.star::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.p-card.star::after{
+  content:'Most Chosen';
+  position:absolute;top:28px;right:28px;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.52rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--noir);background:var(--gold);
+  padding:5px 14px;
+}
+.p-tier{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.56rem;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:32px;
+}
+.p-amount{
+  font-size:4.8rem;font-weight:300;line-height:1;
+  letter-spacing:-0.04em;
+  margin-bottom:6px;
+}
+.p-amount sup{font-size:1.6rem;vertical-align:super;font-weight:400;color:var(--gold)}
+.p-amount.custom-amt{font-size:2.8rem;color:var(--gold)}
+.p-tagline{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.05em;
+  color:var(--parchment);line-height:1.75;
+  margin-bottom:40px;padding-bottom:40px;
+  border-bottom:1px solid rgba(201,169,110,0.1);
+}
+.p-list{list-style:none;margin-bottom:48px}
+.p-list li{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.7rem;letter-spacing:0.06em;
+  color:var(--cream);
+  padding:11px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;gap:12px;
+}
+.p-list li::before{content:'◆';font-size:0.3rem;color:var(--gold);flex-shrink:0}
+
+/* ── GALLERY ────────────────────────────── */
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-auto-rows:auto;
+  gap:12px;
+}
+.g-card{
+  background:var(--obsidian);
+  border:1px solid rgba(201,169,110,0.1);
+  overflow:hidden;
+  cursor:pointer;
+  position:relative;
+  transition:transform .6s var(--ease-royal),border-color .4s;
+}
+.g-card:hover{transform:translateY(-10px);border-color:rgba(201,169,110,0.35)}
+.g-card:nth-child(3){grid-row:span 2}
+.g-card:nth-child(6){grid-column:span 2}
+.g-visual{
+  height:200px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.5rem;
+  position:relative;overflow:hidden;
+  background:var(--chamber);
+}
+.g-card:nth-child(3) .g-visual{height:412px}
+.g-card:nth-child(6) .g-visual{height:180px}
+.g-overlay{
+  position:absolute;inset:0;
+  opacity:0;
+  background:rgba(4,3,12,0.6);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .4s;
+}
+.g-card:hover .g-overlay{opacity:1}
+.g-glow{position:absolute;inset:0;opacity:0.08;transition:opacity .4s}
+.g-card:hover .g-glow{opacity:0.18}
+.g-body{padding:22px 24px}
+.g-tag{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.52rem;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:4px;
+}
+.g-name{
+  font-size:1.15rem;font-weight:400;
+  letter-spacing:-0.01em;
+  margin-bottom:12px;
+}
+.g-foot{display:flex;justify-content:space-between;align-items:center}
+.g-price{
+  font-size:1.8rem;font-weight:300;
+  letter-spacing:-0.02em;color:var(--gold);
+}
+.g-btn{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.52rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--gold);
+  background:var(--gold-veil);
+  border:1px solid rgba(201,169,110,0.25);
+  padding:8px 18px;cursor:pointer;
+  transition:background .25s,border-color .25s,color .25s;
+}
+.g-btn:hover{background:var(--gold);color:var(--noir);border-color:var(--gold)}
+
+/* ── PROCESS ────────────────────────────── */
+.process-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;
+  border:1px solid rgba(201,169,110,0.1);
+}
+.proc{
+  padding:56px 40px;
+  border-right:1px solid rgba(201,169,110,0.1);
+  position:relative;transition:background .4s;
+}
+.proc:last-child{border-right:none}
+.proc:hover{background:rgba(201,169,110,0.04)}
+.proc-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:5rem;font-weight:300;
+  color:rgba(201,169,110,0.07);
+  line-height:1;margin-bottom:32px;
+  letter-spacing:-0.04em;
+}
+.proc-icon{
+  font-size:1.5rem;margin-bottom:20px;
+  color:var(--gold);
+}
+.proc h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.55rem;font-weight:500;
+  letter-spacing:-0.01em;
+  margin-bottom:12px;
+}
+.proc p{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.04em;
+  color:var(--parchment);line-height:1.8;
+}
+
+/* ── SERVICES ───────────────────────────── */
+.svc-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  border:1px solid rgba(201,169,110,0.12);
+}
+.svc-left{
+  padding:88px 80px;
+  border-right:1px solid rgba(201,169,110,0.12);
+  background:var(--obsidian);
+}
+.svc-right{
+  padding:72px 72px;
+  background:rgba(6,5,16,0.95);
+}
+.svc-stats{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0;
+  border:1px solid rgba(201,169,110,0.1);
+  margin-top:56px;
+}
+.svc-stat{
+  padding:28px 32px;
+  border-right:1px solid rgba(201,169,110,0.1);
+  border-bottom:1px solid rgba(201,169,110,0.1);
+}
+.svc-stat:nth-child(2),.svc-stat:nth-child(4){border-right:none}
+.svc-stat:nth-child(3),.svc-stat:nth-child(4){border-bottom:none}
+.svc-val{
+  font-size:2.8rem;font-weight:300;letter-spacing:-0.03em;
+  color:var(--gold);line-height:1;margin-bottom:4px;
+}
+.svc-lbl{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--parchment);
+}
+.cap-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:36px}
+.cap{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--cream);
+  background:rgba(201,169,110,0.05);
+  border:1px solid rgba(201,169,110,0.18);
+  padding:8px 18px;
+  transition:background .25s,border-color .25s;
+}
+.cap:hover{background:var(--gold-veil);border-color:rgba(201,169,110,0.4)}
+
+/* ── FORM ───────────────────────────────── */
+.form-title{
+  font-size:2.6rem;font-weight:300;letter-spacing:-0.02em;
+  margin-bottom:8px;line-height:1.05;
+}
+.form-title em{font-style:italic}
+.form-note{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.68rem;letter-spacing:0.06em;
+  color:var(--parchment);margin-bottom:44px;
+}
+.field{margin-bottom:22px}
+.field-label{
+  display:block;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:9px;
+}
+.field input,.field select,.field textarea{
+  width:100%;
+  background:rgba(0,0,0,0.5);
+  border:none;
+  border-bottom:1px solid rgba(201,169,110,0.2);
+  padding:14px 2px;
+  color:var(--ivory);
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem;
+  font-weight:400;
+  outline:none;
+  transition:border-color .3s;
+  border-radius:0;
+  appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--gold);
+}
+.field input::placeholder,.field textarea::placeholder{
+  color:rgba(160,152,128,0.4);
+  font-style:italic;
+}
+.field select{cursor:pointer}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+#fb{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.68rem;letter-spacing:0.08em;
+  color:var(--gold);margin-top:16px;min-height:20px;
+}
+
+/* ── TESTIMONIALS ───────────────────────── */
+.testi-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:0;
+  border:1px solid rgba(201,169,110,0.1);
+}
+.testi{
+  padding:56px 52px;
+  border-right:1px solid rgba(201,169,110,0.1);
+  border-bottom:1px solid rgba(201,169,110,0.1);
+  background:var(--obsidian);
+  position:relative;
+  transition:background .4s;
+}
+.testi:hover{background:var(--chamber)}
+.testi:nth-child(even){border-right:none}
+.testi:nth-child(3),.testi:nth-child(4){border-bottom:none}
+.testi::before{
+  content:'\201C';
+  position:absolute;top:24px;left:40px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:8rem;font-weight:300;
+  color:rgba(201,169,110,0.06);
+  line-height:1;pointer-events:none;
+}
+.testi-stars{
+  font-size:0.55rem;letter-spacing:4px;
+  color:var(--gold);margin-bottom:24px;
+}
+.testi-q{
+  font-size:1.2rem;font-weight:300;font-style:italic;
+  line-height:1.65;color:var(--cream);
+  margin-bottom:36px;
+}
+.testi-author{display:flex;align-items:center;gap:18px}
+.testi-av{
+  width:46px;height:46px;
+  border:1px solid rgba(201,169,110,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.75rem;font-weight:normal;
+  letter-spacing:0.05em;
+  color:var(--gold);
+}
+.testi-nm{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--ivory);
+}
+.testi-role{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.6rem;letter-spacing:0.06em;
+  color:var(--parchment);
+}
+
+/* ── LINK SHARE ─────────────────────────── */
+.share-block{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:48px;flex-wrap:wrap;
+  padding:72px 80px;
+  background:var(--obsidian);
+  border:1px solid rgba(201,169,110,0.12);
+}
+.share-block::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+}
+.share-block{position:relative}
+.share-link{
+  display:flex;
+  border:1px solid rgba(201,169,110,0.2);
+  overflow:hidden;
+}
+.share-code{
+  font-family:'Courier New',monospace;
+  font-size:0.82rem;
+  color:var(--gold);
+  padding:14px 24px;
+  background:rgba(0,0,0,0.4);
+}
+.share-copy{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--noir);background:var(--gold);
+  border:none;padding:14px 22px;
+  cursor:pointer;transition:background .3s;
+}
+.share-copy:hover{background:var(--gold-bright)}
+
+/* ── FOOTER ─────────────────────────────── */
+footer{
+  border-top:1px solid rgba(201,169,110,0.1);
+  padding:96px 0 48px;
+}
+.footer-grid{
+  display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;
+  gap:72px;
+  padding-bottom:72px;
+  border-bottom:1px solid rgba(201,169,110,0.08);
+  margin-bottom:48px;
+}
+.footer-mark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;font-weight:400;letter-spacing:0.3em;
+  text-transform:uppercase;
+  margin-bottom:24px;
+  display:flex;align-items:center;gap:16px;
+}
+.footer-mark-diamond{
+  width:20px;height:20px;
+  border:1px solid var(--gold);
+  transform:rotate(45deg);
+  flex-shrink:0;
+}
+footer p{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.04em;
+  color:var(--parchment);line-height:1.9;
+  max-width:300px;
+}
+.footer-col h5{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.56rem;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:24px;
+}
+.footer-col a{
+  display:block;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.06em;
+  color:var(--parchment);text-decoration:none;
+  padding:6px 0;
+  transition:color .2s;
+}
+.footer-col a:hover{color:var(--gold)}
+.footer-base{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.footer-legal{
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.58rem;letter-spacing:0.1em;
+  color:rgba(160,152,128,0.45);
+}
+
+/* ── TOAST ──────────────────────────────── */
+#toast{
+  position:fixed;bottom:40px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--chamber);
+  border:1px solid rgba(201,169,110,0.3);
+  border-left:2px solid var(--gold);
+  padding:16px 32px;
+  font-family:'Tenor Sans',sans-serif;
+  font-size:0.7rem;letter-spacing:0.1em;
+  color:var(--ivory);
+  z-index:99990;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s,transform .35s;
+  white-space:nowrap;
+  backdrop-filter:blur(20px);
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── REVEAL ─────────────────────────────── */
+.r{opacity:0;transform:translateY(40px);transition:opacity 1.1s var(--ease-royal),transform 1.1s var(--ease-royal)}
+.r.d1{transition-delay:.1s}.r.d2{transition-delay:.22s}.r.d3{transition-delay:.36s}.r.d4{transition-delay:.5s}
+.r.in{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media(max-width:1100px){
+  .hero-grid{grid-template-columns:1fr;gap:60px}
+  .hero-card{display:none}
+  .pricing-row{grid-template-columns:1fr}
+  .p-card{border-right:none;border-bottom:1px solid rgba(201,169,110,0.1)}
+  .gallery{grid-template-columns:repeat(2,1fr)}
+  .g-card:nth-child(3){grid-row:auto}
+  .g-card:nth-child(6){grid-column:auto}
+  .svc-grid{grid-template-columns:1fr}
+  .svc-left{border-right:none;border-bottom:1px solid rgba(201,169,110,0.12);padding:60px 48px}
+  .svc-right{padding:56px 48px}
+  .testi-grid{grid-template-columns:1fr}
+  .testi:nth-child(even){border-right:none}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:48px}
+  .process-row{grid-template-columns:1fr 1fr}
+  .proc:nth-child(2){border-right:none}
+}
+@media(max-width:700px){
+  .hero-h1{font-size:3.5rem}
+  .gallery{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .share-block{padding:48px 36px}
+  .process-row{grid-template-columns:1fr}
+  .proc{border-right:none}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="cur"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-mark">Blueprint</div>
+  <div class="loader-line"></div>
+  <div class="loader-sub">Couture Digital Estates · London</div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-wordmark"><span></span>Blueprint</a>
+  <ul class="nav-links">
+    <li><a href="#gallery">Atelier</a></li>
+    <li><a href="#services">Maison</a></li>
+    <li><a href="#pricing">Investment</a></li>
+    <li><a href="#voices">Clients</a></li>
+  </ul>
+  <button class="nav-btn" onclick="go('#contact')">Begin Commission</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="w" style="padding-top:40px">
+    <div class="hero-grid">
+      <div class="hero-left">
+        <div class="hero-rule"></div>
+        <div class="hero-eyebrow">Established in Britain · Entry from £28</div>
+        <h1 class="hero-h1">
+          Where<br>
+          <em>Vision</em><br>
+          Meets<br>
+          Infinite Craft
+        </h1>
+        <p class="hero-sub">From the celebrated twenty-eight pound entry template to bespoke digital estates commissioned for the world's most discerning clients.</p>
+        <div class="hero-btns">
+          <button class="btn-gold" onclick="go('#pricing')">Explore from £28 &nbsp;→</button>
+          <button class="btn-outline" onclick="go('#services')">Commission Bespoke</button>
+        </div>
+        <div style="margin-top:72px;display:flex;gap:64px" id="stats">
+          <div>
+            <div style="font-size:3.2rem;font-weight:300;letter-spacing:-0.04em;color:var(--gold)" id="sA">0</div>
+            <div style="font-family:'Tenor Sans',sans-serif;font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--parchment);margin-top:4px">Elite Clients</div>
+          </div>
+          <div>
+            <div style="font-size:3.2rem;font-weight:300;letter-spacing:-0.04em;color:var(--gold)" id="sB">0%</div>
+            <div style="font-family:'Tenor Sans',sans-serif;font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--parchment);margin-top:4px">Satisfaction</div>
+          </div>
+          <div>
+            <div style="font-size:3.2rem;font-weight:300;letter-spacing:-0.04em;color:var(--gold)" id="sC">0</div>
+            <div style="font-family:'Tenor Sans',sans-serif;font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--parchment);margin-top:4px">Templates Sold</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="vert-text">Blueprint · MMXXV · London</div>
+        <div class="hc-label">Entry Commission</div>
+        <div class="hc-price"><sup>£</sup>28</div>
+        <p class="hc-desc">The Essential Blueprint — a premium single-page template of enduring quality. Fully responsive, lifetime ownership, six months of rolling updates.</p>
+        <ul class="hc-features">
+          <li>Premium single-page design</li>
+          <li>Mobile-first, fully responsive</li>
+          <li>SEO ready on delivery</li>
+          <li>Six months of updates included</li>
+          <li>Priority email support</li>
+        </ul>
+        <button class="btn-gold" style="width:100%;justify-content:center;display:block;text-align:center" onclick="wish('Essential Blueprint','£28')">Acquire — Twenty-Eight Pounds →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee"><div class="mq-inner" id="mq"></div></div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="w">
+    <div class="section-header r">
+      <div class="eyebrow">Investment</div>
+      <h2 class="section-h2">Choose Your<br><em>Ascension</em></h2>
+      <p class="section-lead">Three tiers of uncompromising excellence. Each a statement of intent. All prices in British Pounds Sterling.</p>
+    </div>
+    <div class="pricing-row r d2" id="pGrid"></div>
+    <p style="font-family:'Tenor Sans',sans-serif;font-size:0.62rem;letter-spacing:0.12em;color:var(--parchment);text-align:center;margin-top:28px">◆ &nbsp; All prices in GBP (£) · No hidden costs · No small print surprises · No VAT surprises</p>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="w">
+    <div class="section-header r">
+      <div class="eyebrow">The Atelier</div>
+      <h2 class="section-h2">All Templates<br><em>From £28</em></h2>
+      <p class="section-lead">Each piece in the collection is crafted with the same uncompromising attention to detail — whether your investment is twenty-eight pounds or two thousand.</p>
+    </div>
+    <div class="gallery r d2" id="gGrid"></div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- PROCESS -->
+<section>
+  <div class="w">
+    <div class="section-header r" style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">The Method</div>
+      <h2 class="section-h2" style="text-align:center">From Brief<br>to <em>Masterpiece</em></h2>
+    </div>
+    <div class="process-row r d2" id="pRow"></div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- SERVICES + FORM -->
+<section id="services">
+  <div class="w">
+    <div class="svc-grid r">
+      <div class="svc-left">
+        <div class="eyebrow">Sur Mesure</div>
+        <h2 class="section-h2" style="font-size:clamp(2rem,3.8vw,3.8rem)">Bespoke<br><em>Digital Estates</em></h2>
+        <p style="font-family:'Tenor Sans',sans-serif;font-size:0.8rem;letter-spacing:0.04em;color:var(--parchment);line-height:1.9;max-width:460px;margin-top:16px">AI-driven platforms, immersive three-dimensional experiences, and full-stack digital ecosystems. We build the architecturally impossible — beautifully, on time, in sterling.</p>
+        <div class="svc-stats">
+          <div class="svc-stat"><div class="svc-val">14</div><div class="svc-lbl">Days Avg. Delivery</div></div>
+          <div class="svc-stat"><div class="svc-val">∞</div><div class="svc-lbl">Platinum Support</div></div>
+          <div class="svc-stat"><div class="svc-val">99%</div><div class="svc-lbl">Client Satisfaction</div></div>
+          <div class="svc-stat"><div class="svc-val">£0</div><div class="svc-lbl">Hidden Fees</div></div>
+        </div>
+        <div class="cap-list">
+          <span class="cap">◆ Quantum Security</span>
+          <span class="cap">◆ Predictive AI</span>
+          <span class="cap">◆ Edge CDN</span>
+          <span class="cap">◆ WebGL &amp; 3D</span>
+          <span class="cap">◆ Headless CMS</span>
+          <span class="cap">◆ Payment Systems</span>
+          <span class="cap">◆ NFT Integration</span>
+          <span class="cap">◆ SLA Guaranteed</span>
+        </div>
+      </div>
+      <div class="svc-right" id="contact">
+        <div class="form-title">Private<br><em>Audience Request</em></div>
+        <p class="form-note">Our chamberlain will respond within six hours.</p>
+        <div class="field-row">
+          <div class="field"><label class="field-label">Name</label><input type="text" id="fN" placeholder="Your full name"></div>
+          <div class="field"><label class="field-label">Email</label><input type="email" id="fE" placeholder="your@address.com"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="field-label">Commission Tier</label>
+          <select id="fT"><option value="">Please select</option><option>Essential — £28</option><option>Pro Bespoke — £149+</option><option>Imperium — Enterprise</option></select></div>
+          <div class="field"><label class="field-label">Budget (£ GBP)</label>
+          <select id="fB"><option value="">Please select</option><option>£28 – £100</option><option>£100 – £500</option><option>£500 – £2,000</option><option>£2,000 – £10,000</option><option>£10,000+</option></select></div>
+        </div>
+        <div class="field"><label class="field-label">Your Vision</label><textarea id="fM" rows="5" placeholder="Describe your project, ambitions, and timeline in confidence..."></textarea></div>
+        <button class="btn-gold" id="subBtn" style="width:100%;display:block;text-align:center">Dispatch Envoy →</button>
+        <div id="fb"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- TESTIMONIALS -->
+<section id="voices">
+  <div class="w">
+    <div class="section-header r" style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">Voices of Distinction</div>
+      <h2 class="section-h2" style="text-align:center">Our Clients<br><em>Speak</em></h2>
+    </div>
+    <div class="testi-grid r d2" id="tGrid"></div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- LINK SHARE -->
+<section style="padding:100px 0">
+  <div class="w">
+    <div class="share-block r">
+      <div>
+        <h2 style="font-size:clamp(1.8rem,3.5vw,3rem);font-weight:300;margin-bottom:12px">Share Your <em style="font-style:italic;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Preview Link</em></h2>
+        <p style="font-family:'Tenor Sans',sans-serif;font-size:0.75rem;letter-spacing:0.06em;color:var(--parchment)">Invite stakeholders to witness your digital legacy before it launches.</p>
+      </div>
+      <div class="share-link">
+        <span class="share-code" id="pLink">https://blueprintwebs.io/preview</span>
+        <button class="share-copy" id="cpBtn">Copy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="w">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark"><div class="footer-mark-diamond"></div>Blueprint</div>
+        <p>The apex of British digital artisanship — from twenty-eight pounds to the infinite. Every pixel, a decision. Every line of code, a statement of excellence.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Collection</h5>
+        <a href="#">Essential — £28</a>
+        <a href="#">Pro Bespoke — £149</a>
+        <a href="#">Imperium — Custom</a>
+        <a href="#">View All</a>
+      </div>
+      <div class="footer-col">
+        <h5>Maison</h5>
+        <a href="#">Our Method</a>
+        <a href="#">Clients</a>
+        <a href="#">Case Studies</a>
+        <a href="#">The Journal</a>
+      </div>
+      <div class="footer-col">
+        <h5>Salon</h5>
+        <a href="#">Instagram</a>
+        <a href="#">LinkedIn</a>
+        <a href="#">Contact</a>
+        <a href="#">Private Council</a>
+      </div>
+    </div>
+    <div class="footer-base">
+      <span class="footer-legal">© MMXXV Blueprint. All prices in GBP (£). No hidden fees. Registered in England &amp; Wales.</span>
+      <span class="footer-legal">Crafted with precision &amp; purpose.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────
+const mqItems = [
+  'Entry from twenty-eight pounds sterling','◆ UK-Based Studio',
+  'Bespoke Digital Estates','◆ 2,750+ Elite Clients',
+  'WebGL &amp; Immersive 3D','◆ 99% Satisfaction',
+  '14-Day Average Delivery','◆ Zero Hidden Fees',
+  'All Prices in GBP','◆ Platinum Support',
+  'Entry from twenty-eight pounds sterling','◆ UK-Based Studio',
+  'Bespoke Digital Estates','◆ 2,750+ Elite Clients',
+  'WebGL &amp; Immersive 3D','◆ 99% Satisfaction',
+  '14-Day Average Delivery','◆ Zero Hidden Fees',
+  'All Prices in GBP','◆ Platinum Support',
+];
+
+const pricing = [
+  {tier:'I · Essential', amount:'28', custom:false, tagline:'The perfect entry. A premium single-page template built for speed, clarity, and lasting impressions across all devices.', feats:['One premium page template','Fully mobile-responsive','SEO optimised on delivery','Six months rolling updates','Priority email support'], star:false},
+  {tier:'II · Pro Bespoke', amount:'149', custom:false, tagline:'Fully custom — designed entirely around your brand identity, commercial ambitions, and audience expectations.', feats:['Unique five-page design','CMS integration included','Comprehensive SEO audit','Two full revision rounds','Twelve months platinum care','Dedicated account support'], star:true},
+  {tier:'III · Imperium', amount:'Custom', custom:true, tagline:'Unlimited scale. A dedicated engineering team. The total digital estate your ambition deserves — and then some.', feats:['Unlimited pages & sections','Dedicated engineering team','Global CDN with SLA guarantee','AI-driven analytics suite','24/7 concierge support','Lifetime strategic advisory'], star:false},
+];
+
+const templates = [
+  {name:'Essential Blueprint', emoji:'✦', price:'£28', tag:'Starter', desc:'One-page luxury template', bg:'#0c1a35'},
+  {name:'Sovereign Pro', emoji:'◈', price:'£89', tag:'Business', desc:'Multi-page with CMS', bg:'#0a1830'},
+  {name:'Imperium 3D', emoji:'◎', price:'£149', tag:'Elite', desc:'WebGL & 3D interactions', bg:'#080f24'},
+  {name:'Aura Creative', emoji:'◇', price:'£38', tag:'Portfolio', desc:'Cinematic gallery format', bg:'#0c1835'},
+  {name:'Royal Commerce', emoji:'◆', price:'£129', tag:'E-commerce', desc:'Headless & NFT-ready', bg:'#0a1428'},
+  {name:'Agency Blue', emoji:'▲', price:'£55', tag:'Agency', desc:'CRM and proposal ready', bg:'#0d1c38'},
+  {name:'Medici Health', emoji:'◉', price:'£45', tag:'HealthTech', desc:'Telemedicine optimised', bg:'#08122a'},
+  {name:'EduVerse', emoji:'◌', price:'£32', tag:'Education', desc:'LMS integration built-in', bg:'#0b1630'},
+];
+
+const process = [
+  {roman:'I', icon:'◎', title:'Vision', copy:'A private briefing — we listen deeply, absorb your ambition, and crystallise it into a strategic foundation that guides every decision.'},
+  {roman:'II', icon:'◈', title:'Artisan Code', copy:'Handcrafted HTML, CSS, and JavaScript — each element considered, each animation purposeful, each line of code deliberate and clean.'},
+  {roman:'III', icon:'◉', title:'Revelation', copy:'Your private preview with unlimited refinements — we iterate until every detail is flawless and every interaction is exactly as imagined.'},
+  {roman:'IV', icon:'◊', title:'Eternal Launch', copy:'White-glove deployment, performance auditing, and priority support that extends long after the day of launch.'},
+];
+
+const testimonials = [
+  {q:'The £28 template gave our studio an extraordinary runway to success. We later commissioned a full bespoke build — world-class artisanship from first brief to final launch.',name:'Isabella R.',initials:'I.R.',role:'Founder, Arcadia Studio',bg:'#1a2d5a'},
+  {q:'Blueprint entirely redefined our brand presence. Infinite refinement at an entry price point. Our investors noticed the quality within minutes of seeing the new site.',name:'Alexander V.',initials:'A.V.',role:'Chief Executive, Vanguard Capital',bg:'#162448'},
+  {q:'From a twenty-eight pound template to a full enterprise estate in eight months. The Blueprint team are the ultimate digital atelier — precise, visionary, and endlessly excellent.',name:'Victoria K.',initials:'V.K.',role:'Creative Director, Maison K',bg:'#1a2d5a'},
+  {q:'The Imperium 3D commission genuinely astonished our investment board. The attention afforded to every micro-interaction is unlike anything else in the market.',name:'James L.',initials:'J.L.',role:'Managing Partner, L Ventures',bg:'#162448'},
+];
+
+// ── BUILD MARQUEE ───────────────────────────────────────────────────
+const mq = document.getElementById('mq');
+mqItems.forEach(t => {
+  const el = document.createElement('span');
+  el.className = 'mq-item';
+  el.innerHTML = t;
+  mq.appendChild(el);
+});
+
+// ── BUILD PRICING ───────────────────────────────────────────────────
+document.getElementById('pGrid').innerHTML = pricing.map(p=>`
+<div class="p-card ${p.star?'star':''}">
+  <div class="p-tier">${p.tier}</div>
+  <div class="p-amount ${p.custom?'custom-amt':''}">${p.custom?'Bespoke':`<sup>£</sup>${p.amount}`}</div>
+  <p class="p-tagline">${p.tagline}</p>
+  <ul class="p-list">${p.feats.map(f=>`<li>${f}</li>`).join('')}</ul>
+  <button class="${p.star?'btn-gold':'btn-outline'}" style="width:100%;display:block;text-align:center" onclick="go('#contact')">
+    ${p.custom?'Request Consultation':'Select This Tier'} →
+  </button>
+</div>`).join('');
+
+// ── BUILD GALLERY ───────────────────────────────────────────────────
+document.getElementById('gGrid').innerHTML = templates.map(t=>`
+<div class="g-card">
+  <div class="g-visual" style="background:${t.bg}">
+    <div class="g-glow" style="background:radial-gradient(circle at 40% 40%,rgba(201,169,110,1),transparent)"></div>
+    <span style="position:relative;z-index:1;font-size:3rem;color:var(--gold);opacity:0.6">${t.emoji}</span>
+    <div class="g-overlay">
+      <button class="btn-gold" onclick="wish('${t.name}','${t.price}');event.stopPropagation()">Add to Wishlist</button>
+    </div>
+  </div>
+  <div class="g-body">
+    <div class="g-tag">${t.tag}</div>
+    <div class="g-name">${t.name}</div>
+    <p style="font-family:'Tenor Sans',sans-serif;font-size:0.68rem;letter-spacing:0.04em;color:var(--parchment);margin-bottom:14px">${t.desc}</p>
+    <div class="g-foot">
+      <span class="g-price">${t.price}</span>
+      <button class="g-btn" onclick="wish('${t.name}','${t.price}')">Select →</button>
+    </div>
+  </div>
+</div>`).join('');
+
+// ── BUILD PROCESS ───────────────────────────────────────────────────
+document.getElementById('pRow').innerHTML = process.map(p=>`
+<div class="proc">
+  <div class="proc-num">${p.roman}</div>
+  <div class="proc-icon">${p.icon}</div>
+  <h3>${p.title}</h3>
+  <p>${p.copy}</p>
+</div>`).join('');
+
+// ── BUILD TESTIMONIALS ──────────────────────────────────────────────
+document.getElementById('tGrid').innerHTML = testimonials.map(t=>`
+<div class="testi">
+  <div class="testi-stars">★ ★ ★ ★ ★</div>
+  <p class="testi-q">"${t.q}"</p>
+  <div class="testi-author">
+    <div class="testi-av" style="border-color:rgba(201,169,110,0.4)">${t.initials}</div>
+    <div><div class="testi-nm">${t.name}</div><div class="testi-role">${t.role}</div></div>
+  </div>
+</div>`).join('');
+
+// ── FORM ────────────────────────────────────────────────────────────
+document.getElementById('subBtn').onclick = () => {
+  const n=document.getElementById('fN').value.trim();
+  const e=document.getElementById('fE').value.trim();
+  const fb=document.getElementById('fb');
+  if(!n){fb.textContent='Please enter your name.';return}
+  if(!e||!e.includes('@')){fb.textContent='Please enter a valid email address.';return}
+  fb.textContent='✦ Your commission request has been received. Our chamberlain will respond within six hours.';
+  ['fN','fE','fM'].forEach(id=>document.getElementById(id).value='');
+  toast('Commission request dispatched with discretion.');
+};
+
+// ── UTILS ───────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3500);
+}
+function wish(n,p){toast(`◆ ${n} — ${p} · Added to your wishlist`)}
+function go(s){const el=document.querySelector(s);if(el)el.scrollIntoView({behavior:'smooth'})}
+
+document.getElementById('cpBtn').onclick=()=>{
+  navigator.clipboard.writeText(document.getElementById('pLink').textContent);
+  toast('Preview link copied to clipboard.');
+};
+
+// ── LOADER ──────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const l=document.getElementById('loader');
+    l.style.opacity='0';
+    setTimeout(()=>l.style.display='none',1000);
+  },1800);
+});
+
+// ── NAV SCROLL ──────────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('s',window.scrollY>60);
+});
+
+// ── CURSOR ──────────────────────────────────────────────────────────
+const cur=document.getElementById('cur');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function moveCur(){
+  cx+=(mx-cx)*.18;cy+=(my-cy)*.18;
+  cur.style.left=cx+'px';cur.style.top=cy+'px';
+  requestAnimationFrame(moveCur);
+})();
+document.querySelectorAll('button,a,.g-card,.proc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('hov'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('hov'));
+});
+
+// ── COUNTERS ────────────────────────────────────────────────────────
+let cntDone=false;
+function runCounters(){
+  if(cntDone)return;cntDone=true;
+  const anim=(id,end,suf,dur)=>{
+    const el=document.getElementById(id);
+    const t0=Date.now();
+    const go=()=>{
+      const p=Math.min((Date.now()-t0)/dur,1);
+      const e=1-Math.pow(1-p,4);
+      el.textContent=Math.floor(e*end)+suf;
+      if(p<1)requestAnimationFrame(go);
+    };go();
+  };
+  anim('sA',2750,'+',2200);
+  anim('sB',99,'%',2000);
+  anim('sC',6800,'+',2600);
+}
+new IntersectionObserver(e=>{if(e[0].isIntersecting)runCounters()},{threshold:0.3})
+  .observe(document.getElementById('stats'));
+
+// ── REVEAL ──────────────────────────────────────────────────────────
+const revObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')});
+},{threshold:0.07});
+document.querySelectorAll('.r').forEach(el=>revObs.observe(el));
+
+// ── THREE.JS — GOLDEN CRYSTAL ────────────────────────────────────────
+const cvs=document.getElementById('c');
+const rndr=new THREE.WebGLRenderer({canvas:cvs,alpha:true,antialias:true});
+rndr.setPixelRatio(Math.min(window.devicePixelRatio,2));
+rndr.setSize(window.innerWidth,window.innerHeight);
+
+const scn=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,500);
+cam.position.set(0,0,50);
+
+// Central golden octahedron
+const geo1=new THREE.OctahedronGeometry(4.5,0);
+const mat1=new THREE.MeshStandardMaterial({color:0xC9A96E,emissive:0x3d2e0a,metalness:0.98,roughness:0.08});
+const gem=new THREE.Mesh(geo1,mat1);
+scn.add(gem);
+
+// Wireframe outer
+const geo2=new THREE.OctahedronGeometry(6.5,0);
+const mat2=new THREE.MeshBasicMaterial({color:0xE4C882,wireframe:true,transparent:true,opacity:0.1});
+const wire=new THREE.Mesh(geo2,mat2);
+scn.add(wire);
+
+// Icosahedron accent
+const geo3=new THREE.IcosahedronGeometry(9,0);
+const mat3=new THREE.MeshBasicMaterial({color:0x8B7340,wireframe:true,transparent:true,opacity:0.05});
+const ico=new THREE.Mesh(geo3,mat3);
+scn.add(ico);
+
+// Golden ring
+const ringGeo=new THREE.TorusGeometry(11,0.04,8,140);
+const ringMat=new THREE.MeshBasicMaterial({color:0xC9A96E,transparent:true,opacity:0.15});
+const ring=new THREE.Mesh(ringGeo,ringMat);
+ring.rotation.x=Math.PI/4;
+scn.add(ring);
+
+const ring2=new THREE.Mesh(
+  new THREE.TorusGeometry(16,0.025,8,200),
+  new THREE.MeshBasicMaterial({color:0x8B7340,transparent:true,opacity:0.08})
+);
+ring2.rotation.x=-Math.PI/5;ring2.rotation.z=Math.PI/7;
+scn.add(ring2);
+
+// Gold dust particles
+const pPos=[];
+for(let i=0;i<400;i++){
+  const r=30+Math.random()*60;
+  const theta=Math.random()*Math.PI*2;
+  const phi=Math.acos(2*Math.random()-1);
+  pPos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi));
+}
+const pGeo=new THREE.BufferGeometry();
+pGeo.setAttribute('position',new THREE.Float32BufferAttribute(pPos,3));
+const pMat=new THREE.PointsMaterial({color:0xC9A96E,size:0.12,transparent:true,opacity:0.5});
+scn.add(new THREE.Points(pGeo,pMat));
+
+// Lights
+const pl1=new THREE.PointLight(0xC9A96E,3);pl1.position.set(10,12,10);scn.add(pl1);
+const pl2=new THREE.PointLight(0x8B7340,1.5);pl2.position.set(-12,-8,14);scn.add(pl2);
+const pl3=new THREE.PointLight(0xE4C882,1.2);pl3.position.set(0,20,-8);scn.add(pl3);
+scn.add(new THREE.AmbientLight(0x1a1208,0.8));
+
+let rmx=0,rmy=0;
+document.addEventListener('mousemove',e=>{rmx=(e.clientX/window.innerWidth-0.5)*2;rmy=(e.clientY/window.innerHeight-0.5)*2});
+
+(function anim(){
+  requestAnimationFrame(anim);
+  const t=Date.now()*.001;
+  gem.rotation.y=t*.12+rmx*.25;gem.rotation.x=t*.07+rmy*.18;
+  wire.rotation.y=-t*.08;wire.rotation.x=t*.05;
+  ico.rotation.y=t*.04;ico.rotation.z=-t*.03;
+  ring.rotation.z=t*.05;
+  ring2.rotation.y=-t*.03;
+  pl1.position.x=Math.sin(t*.4)*14;pl1.position.y=Math.cos(t*.3)*10;
+  rndr.render(scn,cam);
+})();
+
+window.addEventListener('resize',()=>{
+  cam.aspect=window.innerWidth/window.innerHeight;
+  cam.updateProjectionMatrix();
+  rndr.setSize(window.innerWidth,window.innerHeight);
+});
+</script>
+</body>
+</html>
